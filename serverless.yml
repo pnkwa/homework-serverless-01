@@ -1,0 +1,62 @@
+service: homework-severless-01
+
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  profile: serverlessUser
+  region: us-east-1
+  environment:
+        tableName: ${self:custom.tableName}
+  iamRoleStatements:
+        - Effect: Allow
+          Action:
+              - dynamodb:*
+          Resource: '*'
+
+
+functions:
+    getStationeryItems:
+        handler: lambdas/getStationeryItems.handler
+        events:
+            - http:
+                  path: get-stationery-item/{ID}
+                  method: GET
+                  cors: true
+
+    getBakeryItem:
+        handler: lambdas/getBakeryItem.handler
+        events:
+            - http:
+                  path: get-bakery-item/{ID}
+                  method: GET
+                  cors: true
+
+    createBakeryItem:
+        handler: lambdas/createBakeryItem.handler
+        events:
+            - http:
+                  path: create-bakery-item/{ID}
+                  method: POST
+                  cors: true
+
+plugins:
+    - serverless-offline
+
+custom:
+    tableName: bakery-items-table
+
+resources:
+    Resources:
+        MyDynamoDbTable:
+            Type: AWS::DynamoDB::Table
+            Properties:
+                TableName: ${self:custom.tableName}
+                AttributeDefinitions:
+                    - AttributeName: ID
+                      AttributeType: S
+                KeySchema:
+                    - AttributeName: ID
+                      KeyType: HASH
+                BillingMode: PAY_PER_REQUEST
